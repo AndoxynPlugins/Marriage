@@ -16,14 +16,18 @@
  */
 package net.daboross.bukkitdev.marriage;
 
-import java.io.IOException;
-import java.util.logging.Level;
+import net.daboross.bukkitdev.marriage.listeners.MarriageChatNotifier;
+import net.daboross.bukkitdev.marriage.listeners.MarriedDamageStopper;
+import net.daboross.bukkitdev.commandexecutorbase.CommandExecutorBase;
+import net.daboross.bukkitdev.marriage.commands.DisablePvpCommand;
+import net.daboross.bukkitdev.marriage.commands.EnablePvpCommand;
+import net.daboross.bukkitdev.marriage.commands.TeleportCommand;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.mcstats.MetricsLite;
 
 /**
  *
@@ -31,19 +35,31 @@ import org.mcstats.MetricsLite;
  */
 public class MarriagePlugin extends JavaPlugin implements Listener {
 
+    private MarriageStorage flatFiles;
+    private MarriageChatNotifier marriageChatNotifier;
+    private MarriedDamageStopper marriedDamageStopper;
+
     @Override
     public void onEnable() {
+        CommandExecutorBase base = new CommandExecutorBase(null);
+        base.addSubCommand(new DisablePvpCommand(this));
+        base.addSubCommand(new EnablePvpCommand(this));
+        base.addSubCommand(new TeleportCommand(this));
+
+        PluginCommand marriage = getCommand("marriage");
+        if (marriage != null) {
+            marriage.setExecutor(base);
+        }
+        flatFiles = new MarriageStorage(this);
+        marriageChatNotifier = new MarriageChatNotifier(this);
+        marriedDamageStopper = new MarriedDamageStopper(this);
+        registerListeners();
+    }
+
+    private void registerListeners() {
         PluginManager pm = getServer().getPluginManager();
-        pm.registerEvents(this, this);
-        MetricsLite metrics = null;
-        try {
-            metrics = new MetricsLite(this);
-        } catch (IOException ex) {
-            getLogger().log(Level.WARNING, "Unable to create Metrics", ex);
-        }
-        if (metrics != null) {
-            metrics.start();
-        }
+        pm.registerEvents(marriageChatNotifier, this);
+        pm.registerEvents(marriedDamageStopper, this);
     }
 
     @Override
@@ -52,10 +68,19 @@ public class MarriagePlugin extends JavaPlugin implements Listener {
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-        if (cmd.getName().equalsIgnoreCase("")) {
-        } else {
-            sender.sendMessage("Marriage doesn't know about the command /" + cmd.getName());
-        }
+        sender.sendMessage("Marriage doesn't know about the command /" + cmd.getName());
         return true;
+    }
+
+    public MarriageChatNotifier getChat() {
+        return marriageChatNotifier;
+    }
+
+    public MarriedDamageStopper getDmg() {
+        return marriedDamageStopper;
+    }
+
+    public MarriageStorage getStorage() {
+        return flatFiles;
     }
 }
