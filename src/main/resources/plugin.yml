@@ -1,0 +1,5 @@
+name: ${project.name}
+main: net.daboross.bukkitdev.marriage.MarriagePlugin
+version: ${project.version}
+author: Dabo Ross
+description: Marriage
