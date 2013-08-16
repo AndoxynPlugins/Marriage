@@ -3,18 +3,19 @@ package net.daboross.bukkitdev.marriage;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
+import java.util.logging.Logger;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 
 public class MarriageStorage {
 
+    private final MarriagePlugin plugin;
     private File saveFile;
     private YamlConfiguration save;
 
-    public MarriageStorage(Plugin plugin) {
+    public MarriageStorage(MarriagePlugin plugin) {
+        this.plugin = plugin;
         save = new YamlConfiguration();
         save.options().pathSeparator('|');
         save.options().indent(2);
@@ -25,6 +26,17 @@ public class MarriageStorage {
             } catch (IOException | InvalidConfigurationException ex) {
                 plugin.getLogger().log(Level.SEVERE, "Error loading save file", ex);
             }
+        }
+    }
+
+    public void save() {
+        if (!plugin.getDataFolder().exists()) {
+            plugin.getDataFolder().mkdirs();
+        }
+        try {
+            save.save(saveFile);
+        } catch (IOException ex) {
+            plugin.getLogger().log(Level.SEVERE, "Error saving", ex);
         }
     }
 
@@ -58,7 +70,7 @@ public class MarriageStorage {
     }
 
     private void setMarried(String playerName, String partner) {
-        save.set(playerName + "|isMarried", "Married");
+        save.set(playerName + "|isMarried", true);
         save.set(playerName + "|marriedTo", partner);
         save.set(playerName + "|marriedTime", System.currentTimeMillis());
         save.set(playerName + "|pvpEnabled", false);

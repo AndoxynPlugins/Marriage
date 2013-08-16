@@ -19,8 +19,10 @@ package net.daboross.bukkitdev.marriage;
 import net.daboross.bukkitdev.marriage.listeners.MarriageChatNotifier;
 import net.daboross.bukkitdev.marriage.listeners.MarriedDamageStopper;
 import net.daboross.bukkitdev.commandexecutorbase.CommandExecutorBase;
+import net.daboross.bukkitdev.marriage.commands.AcceptCommand;
 import net.daboross.bukkitdev.marriage.commands.DisablePvpCommand;
 import net.daboross.bukkitdev.marriage.commands.EnablePvpCommand;
+import net.daboross.bukkitdev.marriage.commands.ProposeCommand;
 import net.daboross.bukkitdev.marriage.commands.TeleportCommand;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -35,24 +37,27 @@ import org.bukkit.plugin.java.JavaPlugin;
  */
 public class MarriagePlugin extends JavaPlugin implements Listener {
 
-    private MarriageStorage flatFiles;
+    private MarriageStorage storage;
     private MarriageChatNotifier marriageChatNotifier;
     private MarriedDamageStopper marriedDamageStopper;
+    private MarriageProposals proposals;
 
     @Override
     public void onEnable() {
+        storage = new MarriageStorage(this);
+        proposals = new MarriageProposals();
+        marriageChatNotifier = new MarriageChatNotifier(this);
+        marriedDamageStopper = new MarriedDamageStopper(this);
         CommandExecutorBase base = new CommandExecutorBase(null);
-        base.addSubCommand(new DisablePvpCommand(this));
-        base.addSubCommand(new EnablePvpCommand(this));
         base.addSubCommand(new TeleportCommand(this));
-
+        base.addSubCommand(new EnablePvpCommand(this));
+        base.addSubCommand(new DisablePvpCommand(this));
+        base.addSubCommand(new ProposeCommand(this));
+        base.addSubCommand(new AcceptCommand(this));
         PluginCommand marriage = getCommand("marriage");
         if (marriage != null) {
             marriage.setExecutor(base);
         }
-        flatFiles = new MarriageStorage(this);
-        marriageChatNotifier = new MarriageChatNotifier(this);
-        marriedDamageStopper = new MarriedDamageStopper(this);
         registerListeners();
     }
 
@@ -64,6 +69,7 @@ public class MarriagePlugin extends JavaPlugin implements Listener {
 
     @Override
     public void onDisable() {
+        storage.save();
     }
 
     @Override
@@ -72,15 +78,11 @@ public class MarriagePlugin extends JavaPlugin implements Listener {
         return true;
     }
 
-    public MarriageChatNotifier getChat() {
-        return marriageChatNotifier;
-    }
-
-    public MarriedDamageStopper getDmg() {
-        return marriedDamageStopper;
-    }
-
     public MarriageStorage getStorage() {
-        return flatFiles;
+        return storage;
+    }
+
+    public MarriageProposals getProposals() {
+        return proposals;
     }
 }

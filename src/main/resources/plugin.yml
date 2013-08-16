@@ -3,14 +3,6 @@ main: net.daboross.bukkitdev.marriage.MarriagePlugin
 version: ${project.version}
 author: Dabo Ross
 description: Marriage
-depend: [Vault]
 commands:
-   marry:
-permissions:
-  marriage.*:
-    default: true
-    children:
-      marriage.enablepvp: true 
-      marriage.disablepvp: true
-      marriage.tp: true
-      marriage.propose: true
+   marriage:
+     aliases: [marry, ma]
